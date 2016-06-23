@@ -2,7 +2,7 @@ import nibabel as nb
 import numpy as np
 
 # function to load mesh geometry
-def load_mesh_geometry(mesh):
+def load_mesh_geometry(surf_mesh):
     # if input is a filename, try to load it with nibabel
     if isinstance(surf_mesh, basestring):
         if (surf_mesh.endswith('orig') or surf_mesh.endswith('pial') or
@@ -12,20 +12,10 @@ def load_mesh_geometry(mesh):
         elif surf_mesh.endswith('gii'):
             coords, faces = gifti.read(surf_mesh).getArraysFromIntent(nibabel.nifti1.intent_codes['NIFTI_INTENT_POINTSET'])[0].data, \
                             gifti.read(surf_mesh).getArraysFromIntent(nibabel.nifti1.intent_codes['NIFTI_INTENT_TRIANGLE'])[0].data
-        elif suf_mesh.endswith('vtk'):
-            try:
-                coords, faces, _ = read_vtk(surf_mesh)
-            except ValueError:
-                raise ValueError('This vtk file appears to be binary coded \
-                currently only ASCII coded vtk files can be read')
-        elif suf_mesh.endswith('ply'):
-            try:
-                coords, faces, _ = read_ply(surf_mesh)
-            except ValueError:
-                raise ValueError('This ply file appears to be binary coded \
-                currently only ASCII coded ply files can be read')
-        else:
-            raise ValueError('Format of data file not recognized.')
+        elif surf_mesh.endswith('vtk'):
+            coords, faces, _ = read_vtk(surf_mesh)
+        elif surf_mesh.endswith('ply'):
+            coords, faces = read_ply(surf_mesh)
         # if a dictionary is given, check it contains entries for coords and faces
         elif isinstance(surf_mesh, dict):
             if ('faces' in surf_mesh and 'coords' in surf_mesh):
@@ -56,8 +46,8 @@ def load_mesh_data(surf_data, gii_darray=0):
         # check if this works with multiple indices (if dim(data)>1)
         elif surf_data.endswith('gii'):
             data = gifti.read(surf_data).darrays[gii_darray].data
-        elif suf_mesh.endswith('vtk'):
-            _, _, data = read_vtk(surf_mesh)
+        elif surf_data.endswith('vtk'):
+            _, _, data = read_vtk(surf_data)
         else:
             raise ValueError('Format of data file not recognized.')
     elif isinstance(surf_data, np.ndarray):
@@ -72,9 +62,13 @@ def read_vtk(file):
     Reads ASCII coded vtk files using pandas,
     returning vertices, faces and data as three numpy arrays.
     '''
-    import pandas
+    import pandas as pd
+    import csv
     # read full file while dropping empty lines
-    vtk_df=pd.read_csv(file, header=None, engine='python')
+    try:
+        vtk_df=pd.read_csv(file, header=None, engine='python')
+    except csv.Error:
+        raise ValueError('This vtk file appears to be binary coded currently only ASCII coded vtk files can be read')
     vtk_df=vtk_df.dropna()
     # extract number of vertices and faces
     number_vertices=int(vtk_df[vtk_df[0].str.contains('POINTS')][0].iloc[0].split()[1])
@@ -114,9 +108,13 @@ def read_vtk(file):
 
 # function to read ASCII coded ply file
 def read_ply(file):
-    import pandas
+    import pandas as pd
+    import csv
     # read full file and drop empty lines
-    ply_df = pd.read_csv(file, header=None, engine='python')
+    try:
+        ply_df = pd.read_csv(file, header=None, engine='python')
+    except csv.Error:
+        raise ValueError('This ply file appears to be binary coded currently only ASCII coded ply files can be read')
     ply_df = ply_df.dropna()
     # extract number of vertices and faces, and row that marks the end of header
     number_vertices = int(ply_df[ply_df[0].str.contains('element vertex')][0].iloc[0].split()[2])
