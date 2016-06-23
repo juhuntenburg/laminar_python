@@ -18,6 +18,12 @@ def load_mesh_geometry(mesh):
             except ValueError:
                 raise ValueError('This vtk file appears to be binary coded \
                 currently only ASCII coded vtk files can be read')
+        elif suf_mesh.endswith('ply'):
+            try:
+                coords, faces, _ = read_ply(surf_mesh)
+            except ValueError:
+                raise ValueError('This ply file appears to be binary coded \
+                currently only ASCII coded ply files can be read')
         else:
             raise ValueError('Format of data file not recognized.')
         # if a dictionary is given, check it contains entries for coords and faces
@@ -66,8 +72,7 @@ def read_vtk(file):
     Reads ASCII coded vtk files using pandas,
     returning vertices, faces and data as three numpy arrays.
     '''
-    import pandas as pd
-    import numpy as np
+    import pandas
     # read full file while dropping empty lines
     vtk_df=pd.read_csv(file, header=None, engine='python')
     vtk_df=vtk_df.dropna()
@@ -106,3 +111,26 @@ def read_vtk(file):
         data_array = np.empty(0)
 
     return vertex_array, face_array, data_array
+
+# function to read ASCII coded ply file
+def read_ply(file):
+    import pandas
+    # read full file and drop empty lines
+    ply_df = pd.read_csv(file, header=None, engine='python')
+    ply_df = ply_df.dropna()
+    # extract number of vertices and faces, and row that marks the end of header
+    number_vertices = int(ply_df[ply_df[0].str.contains('element vertex')][0].iloc[0].split()[2])
+    number_faces = int(ply_df[ply_df[0].str.contains('element face')][0].iloc[0].split()[2])
+    end_header = ply_df[ply_df[0].str.contains('end_header')].index.tolist()[0]
+    # read vertex coordinates into dict
+    vertex_df = pd.read_csv(file, skiprows=range(end_header + 1),
+                            nrows=number_vertices, sep='\s*', header=None,
+                            engine='python')
+    vertex_array = np.array(vertex_df)
+    # read face indices into dict
+    face_df = pd.read_csv(file, skiprows=range(end_header + number_vertices + 1),
+                          nrows=number_faces, sep='\s*', header=None,
+                          engine='python')
+    face_array = np.array(face_df.iloc[:, 1:4])
+
+    return vertex_array, face_array
