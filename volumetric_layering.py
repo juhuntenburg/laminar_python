@@ -22,21 +22,22 @@ def layering(gwb_levelset, cgb_levelset, lut_dir, number_layers=10):
     base_name = os.path.basename(gwb_levelset)
     split_name = base_name[:base_name.find('.')]
 
-    cbstools.initVM()
+    cbstools.initVM(initialheap='6000m', maxheap='6000m')
     lamination=cbstools.LaminarVolumetricLayering()
     lamination.setDimensions(gwb_data.shape[0],gwb_data.shape[1],gwb_data.shape[2])
-    lamination.setResolutions(im_header.get_zooms()[0],im_header.get_zooms()[1],im_header.get_zooms()[2])
+    zooms = [x.item() for x in im_header.get_zooms()]
+    lamination.setResolutions(zooms[0], zooms[1], zooms[2])
 
     lamination.setInnerDistanceImage(cbstools.JArray('float')((gwb_data.flatten('F')).astype(float)))
     lamination.setOuterDistanceImage(cbstools.JArray('float')((cgb_data.flatten('F')).astype(float)))
     lamination.setNumberOfLayers(number_layers)
-    lamination.setTopologyLUTdirectory(lut);
+    lamination.setTopologyLUTdirectory(lut_dir);
     lamination.execute()
 
     depth_data=np.reshape(np.array(lamination.getContinuousDepthMeasurement(),dtype=np.float32),gwb_data.shape,'F')
     layers_data=np.reshape(np.array(lamination.getDiscreteSampledLayers(),dtype=np.uint32),gwb_data.shape,'F')
 
-    return layers_im, depth_im
+    return layers_data, depth_data
     #save_volume(depth_data, im_header, im_affine,
     #            os.path.join(base_name + '_depth.nii.gz'))
     #save_volume(label_data, im_header, im_affine,

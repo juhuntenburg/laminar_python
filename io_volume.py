@@ -31,26 +31,26 @@ def load_volume(mri_vol):
 
 
 # function to save volume data
-def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOBBER=True):
+def save_volume(fname, data, affine, header=None, dtype='float32', CLOBBER=True):
     """
     Function to write volume data to file. Filetype is based on filename suffix
     Input:
-        - full_fileName:    you can figure that out
+        - fname:    you can figure that out
         - data:             numpy array
-        - aff:              affine matrix
+        - affine:              affine matrix
         - header:        header data to write to file (use img.header to get the header of root file)
         - data_type:        numpy data type ('uint32', 'float32' etc)
         - CLOBBER:          overwrite existing file
     """
     import os
-    img = nb.Nifti1Image(data, aff, header=header)
-    if (full_fileName.endswith('nii') or full_fileName.endswith('nii.gz')):
-        img = nb.Nifti1Image(data, aff, header=header)
-        if data_type is not None:  # if there is a particular data_type chosen, set it
+    img = nb.Nifti1Image(data, affine, header=header)
+    if (fname.endswith('nii') or fname.endswith('nii.gz')):
+        img = nb.Nifti1Image(data, affine, header=header)
+        if dtype is not None:  # if there is a particular data_type chosen, set it
         # data=data.astype(data_type)
-            img.set_data_dtype(data_type)
-        if not (os.path.isfile(full_fileName)) or CLOBBER:
-            img.to_filename(full_fileName)
+            img.set_data_dtype(dtype)
+        if not (os.path.isfile(fname)) or CLOBBER:
+            img.to_filename(fname)
         else:
             print("This file exists and CLOBBER was set to false, file not saved.")
  #    elif full_fileName.endswith('mnc')
