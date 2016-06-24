@@ -11,16 +11,19 @@ import numpy as np
 import nibabel as nb
 import cbstools
 import os
-from io_volume import load_volume #, save_volume
+from io_volume import load_volume, save_volume
 
-def layering(gwb_levelset, cgb_levelset, lut_dir, number_layers=10):
+def layering(gwb_levelset, cgb_levelset, lut_dir, number_layers=10,
+             save_data=True, base_name=None):
 
     # load the data as well as filenames and headers for saving later
     gwb_data, im_header, im_affine = load_volume(gwb_levelset)
     cgb_data, _, _ = load_volume(cgb_levelset)
-    path_name = os.path.dirname(gwb_levelset)
-    base_name = os.path.basename(gwb_levelset)
-    split_name = base_name[:base_name.find('.')]
+
+    if not base_name:
+        dir_name = os.path.dirname(gwb_levelset)
+        base_name = os.path.basename(gwb_levelset)
+        base_name = base_name[:base_name.find('.')]
 
     cbstools.initVM(initialheap='6000m', maxheap='6000m')
     lamination=cbstools.LaminarVolumetricLayering()
@@ -35,10 +38,11 @@ def layering(gwb_levelset, cgb_levelset, lut_dir, number_layers=10):
     lamination.execute()
 
     depth_data=np.reshape(np.array(lamination.getContinuousDepthMeasurement(),dtype=np.float32),gwb_data.shape,'F')
-    layers_data=np.reshape(np.array(lamination.getDiscreteSampledLayers(),dtype=np.uint32),gwb_data.shape,'F')
+    profile_data=np.reshape(np.array(lamination.getDiscreteSampledLayers(),dtype=np.uint32),gwb_data.shape,'F')
 
-    return layers_data, depth_data
-    #save_volume(depth_data, im_header, im_affine,
-    #            os.path.join(base_name + '_depth.nii.gz'))
-    #save_volume(label_data, im_header, im_affine,
-    #            os.path.join(base_name + '_profiles.nii.gz'))
+    save_volume(os.path.join(dir_name, base_name+'_depth.nii.gz'),
+                depth_data, im_affine, header=im_header)
+    save_volume(os.path.join(dir_name, base_name + '_profiles.nii.gz'),
+                profile_data, im_affine, header=im_header)
+
+    return profile_data, depth_data
