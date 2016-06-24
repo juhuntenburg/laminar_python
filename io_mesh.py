@@ -251,10 +251,107 @@ def save_obj(surf_mesh,coords,faces):
         s.write('%s\n' % Line)
 
 
+def write_vtk(filename, vertices, faces, data=None, comment=None):
+
+    '''
+    Creates ASCII coded vtk file from numpy arrays using pandas.
+
+    Inputs:
+    -------
+    (mandatory)
+    * filename: str, path to location where vtk file should be stored
+    * vertices: numpy array with vertex coordinates,  shape (n_vertices, 3)
+    * faces: numpy array with face specifications, shape (n_faces, 3)
+
+    (optional)
+    * data: numpy array with data points, shape (n_vertices, n_datapoints)
+        NOTE: n_datapoints can be =1 but cannot be skipped (n_vertices,)
+    * comment: str, is written into the comment section of the vtk file
+
+    Usage:
+    ---------------------
+    write_vtk('/path/to/vtk/file.vtk', v_array, f_array)
+
+    '''
+
+    import pandas as pd
+    import numpy as np
+    # infer number of vertices and faces
+    number_vertices=vertices.shape[0]
+    number_faces=faces.shape[0]
+    if data is not None:
+        number_data=data.shape[0]
+    # make header and subheader dataframe
+    header=['# vtk DataFile Version 3.0',
+            '%s'%comment,
+            'ASCII',
+            'DATASET POLYDATA',
+            'POINTS %i float'%number_vertices
+             ]
+    header_df=pd.DataFrame(header)
+    sub_header=['POLYGONS %i %i'%(number_faces, 4*number_faces)]
+    sub_header_df=pd.DataFrame(sub_header)
+    # make dataframe from vertices
+    vertex_df=pd.DataFrame(vertices)
+    # make dataframe from faces, appending first row of 3's (indicating the polygons are triangles)
+    triangles=np.reshape(3*(np.ones(number_faces)), (number_faces,1))
+    triangles=triangles.astype(int)
+    faces=faces.astype(int)
+    faces_df=pd.DataFrame(np.concatenate((triangles,faces),axis=1))
+    # write dfs to csv
+    header_df.to_csv(filename, header=None, index=False)
+    with open(filename, 'a') as f:
+        vertex_df.to_csv(f, header=False, index=False, float_format='%.3f', sep=' ')
+    with open(filename, 'a') as f:
+        sub_header_df.to_csv(f, header=False, index=False)
+    with open(filename, 'a') as f:
+        faces_df.to_csv(f, header=False, index=False, float_format='%.0f', sep=' ')
+    # if there is data append second subheader and data
+    if data != None:
+        datapoints=data.shape[1]
+        sub_header2=['POINT_DATA %i'%(number_data),
+                     'SCALARS EmbedVertex float %i'%(datapoints),
+                     'LOOKUP_TABLE default']
+        sub_header_df2=pd.DataFrame(sub_header2)
+        data_df=pd.DataFrame(data)
+        with open(filename, 'a') as f:
+            sub_header_df2.to_csv(f, header=False, index=False)
+        with open(filename, 'a') as f:
+            data_df.to_csv(f, header=False, index=False, float_format='%.16f', sep=' ')
 
 
-
-
-
-
-
+def write_ply(filename, vertices, faces, comment=None):
+    import numpy as np
+    import pandas as pd
+    print "writing ply format"
+    # infer number of vertices and faces
+    number_vertices = vertices.shape[0]
+    number_faces = faces.shape[0]
+    # make header dataframe
+    header = ['ply',
+            'format ascii 1.0',
+            'comment %s' % comment,
+            'element vertex %i' % number_vertices,
+            'property float x',
+            'property float y',
+            'property float z',
+            'element face %i' % number_faces,
+            'property list uchar int vertex_indices',
+            'end_header'
+             ]
+    header_df = pd.DataFrame(header)
+    # make dataframe from vertices
+    vertex_df = pd.DataFrame(vertices)
+    # make dataframe from faces, adding first row of 3s (indicating triangles)
+    triangles = np.reshape(3 * (np.ones(number_faces)), (number_faces, 1))
+    triangles = triangles.astype(int)
+    faces = faces.astype(int)
+    faces_df = pd.DataFrame(np.concatenate((triangles, faces), axis=1))
+    # write dfs to csv
+    header_df.to_csv(filename, header=None, index=False)
+    with open(filename, 'a') as f:
+        vertex_df.to_csv(f, header=False, index=False,
+                         float_format='%.3f', sep=' ')
+    with open(filename, 'a') as f:
+        faces_df.to_csv(f, header=False, index=False,
+                        float_format='%.0f', sep=' ')
