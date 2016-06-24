@@ -18,7 +18,7 @@ def load_volume(mri_vol):
                 print '"sudo pip install h5py"'
 # option to add in more file types here, eg analyze
 # if volume is already an np array
-    elif isinstance(mri_vol, nibabel.spatialimages.SpatialImage):
+    elif isinstance(mri_vol, nb.spatialimages.SpatialImage):
         img=mri_vol
 # img_data=np.array(mri_vol)
     else:
