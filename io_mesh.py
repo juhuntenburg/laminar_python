@@ -16,7 +16,8 @@ def load_mesh_geometry(surf_mesh):
             coords, faces, _ = read_vtk(surf_mesh)
         elif surf_mesh.endswith('ply'):
             coords, faces = read_ply(surf_mesh)
-        # if a dictionary is given, check it contains entries for coords and faces
+        elif surf_mesh.endswith('obj'):
+            coords, faces = read_obj(surf_mesh)
         elif isinstance(surf_mesh, dict):
             if ('faces' in surf_mesh and 'coords' in surf_mesh):
                 coords, faces = surf_mesh['coords'], surf_mesh['faces']
@@ -132,3 +133,46 @@ def read_ply(file):
     face_array = np.array(face_df.iloc[:, 1:4])
 
     return vertex_array, face_array
+
+
+def read_obj(file):
+    def chunks(l,n):
+      """Yield n-sized chunks from l"""
+      for i in xrange(0, len(l), n):
+          yield l[i:i+n]
+    def indices(lst,element):
+        result=[]
+        offset = -1
+        while True:
+            try:
+                offset=lst.index(element,offset+1)
+            except ValueError:
+                return result
+            result.append(offset)
+    fp=open(file,'r')
+    n_vert=[]
+    n_poly=[]
+    k=0
+    Polys=[]
+	# Find number of vertices and number of polygons, stored in .obj file.
+	#Then extract list of all vertices in polygons
+    for i, line in enumerate(fp):
+         if i==0:
+    	#Number of vertices
+             n_vert=int(line.split()[6])
+             XYZ=np.zeros([n_vert,3])
+         elif i<n_vert:
+             XYZ[i-1]=map(float,line.split())
+         elif i==2*n_vert+3:
+             n_poly=int(line)
+         elif i>2*n_vert+5:
+             if not line.strip():
+                 k=1
+             elif k==1:
+                 Polys.extend(line.split())
+    Polys=map(int,Polys)
+    npPolys=np.array(Polys)
+    triangles=list(chunks(Polys,3))
+    return XYZ, triangles;
+
+
