@@ -28,3 +28,30 @@ def load_volume(mri_vol):
     else:
             raise ValueError('volume must be a either filename or a numpy array')
     return img_data, img_header, img_affine;
+
+
+def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOBBER=True):
+"""
+    Convenience function to write data to file, will write .nii as default
+    Input:
+        - full_fileName:    you can figure that out
+        - data:             numpy array
+        - aff:              affine matrix
+        - header:        header data to write to file (use img.header to get the header of root file)
+        - data_type:        numpy data type ('uint32', 'float32' etc)
+        - CLOBBER:          overwrite existing file
+    """
+    import os
+    import nibabel as nb
+    if (mri_vol.endswith('nii') or mri_vol.endswith('nii.gz')):
+        img = nb.Nifti1Image(data, aff, header=header)
+        if data_type is not None:  # if there is a particular data_type chosen, set it
+        # data=data.astype(data_type)
+            img.set_data_dtype(data_type)
+        if not (os.path.isfile(full_fileName)) or CLOBBER:
+            img.to_filename(full_fileName)
+        else:
+            print("This file exists and CLOBBER was set to false, file not saved.")
+  #   elif (mri_vol.endswith('mnc'):
+       
+
