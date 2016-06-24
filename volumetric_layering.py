@@ -17,22 +17,22 @@ def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
 
     # load the data as well as filenames and headers for saving later
     prob_img = load_volume(tissue_prob_img)
-    prob_data = boundary_im.get_data()
+    prob_data = prob_img.get_data()
     hdr = prob_img.get_header()
     aff = prob_img.get_affine()
 
-    if not base_name:
-        dir_name = os.path.dirname(prob_img)
-        base_name = os.path.basename(prob_img)
-        base_name = base_name[:base_name.find('.')]
+    try:
+        cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+    except ValueError:
+        pass
 
-    cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
     prob2level = cbstoolsjcc.SurfaceProbabilityToLevelset()
 
     prob2level.setProbabilityImage(cbstoolsjcc.JArray('float')((prob_data.flatten('F')).astype(float)))
     prob2level.setDimensions(prob_data.shape)
     zooms = [x.item() for x in hdr.get_zooms()]
     prob2level.setResolutions(zooms[0], zooms[1], zooms[2])
+    prob2level.execute()
 
     levelset_data = np.reshape(np.array(prob2level.getLevelSetImage(),
                                dtype=np.float32), prob_data.shape,'F')
@@ -40,8 +40,18 @@ def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
     levelset_img = nb.Nifti1Image(levelset_data, aff, hdr)
 
     if save_data:
-        save_volume(os.path.join(dir_name, base_name+'_levelsets.nii.gz'),
+        if not base_name:
+            if not isinstance(tissue_prob_img, basestring):
+                base_name = os.getcwd()
+                print "saving to %s"%base_name
+            else:
+                dir_name = os.path.dirname(tissue_prob_img)
+                base_name = os.path.basename(tissue_prob_img)
+                base_name = base_name[:base_name.find('.')]
+        save_volume(os.path.join(dir_name, base_name+'_levelset.nii.gz'),
                     levelset_img)
+
+    return levelset_img
 
 def layering(gwb_levelset, cgb_levelset, lut_dir, n_layers=10,
              save_data=True, base_name=None):
@@ -50,16 +60,15 @@ def layering(gwb_levelset, cgb_levelset, lut_dir, n_layers=10,
     gwb_img = load_volume(gwb_levelset)
     gwb_data = gwb_img.get_data()
     hdr = gwb_img.get_header()
-    aff = gbw_img.get_affine()
+    aff = gwb_img.get_affine()
 
     cgb_data = load_volume(cgb_levelset).get_data()
 
-    if not base_name:
-        dir_name = os.path.dirname(gwb_levelset)
-        base_name = os.path.basename(gwb_levelset)
-        base_name = base_name[:base_name.find('.')]
+    try:
+        cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+    except ValueError:
+        pass
 
-    cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
     lamination=cbstoolsjcc.LaminarVolumetricLayering()
     lamination.setDimensions(gwb_data.shape[0],gwb_data.shape[1],gwb_data.shape[2])
     zooms = [x.item() for x in hdr.get_zooms()]
@@ -84,6 +93,15 @@ def layering(gwb_levelset, cgb_levelset, lut_dir, n_layers=10,
     boundary_img = nb.Nifti1Image(boundary_data, aff, hdr)
 
     if save_data:
+        if not base_name:
+            if not isinstance(gwb_levelset, basestring):
+                base_name = os.getcwd()
+                print "saving to %s"%base_name
+            else:
+                dir_name = os.path.dirname(gwb_levelset)
+                base_name = os.path.basename(gwb_levelset)
+                base_name = base_name[:base_name.find('.')]
+
         save_volume(os.path.join(dir_name, base_name+'_depth.nii.gz'), depth_img)
         save_volume(os.path.join(dir_name, base_name + '_layers.nii.gz'), layer_img)
         save_volume(os.path.join(dir_name, base_name + '_boundaries.nii.gz'), boundary_img)
@@ -91,7 +109,7 @@ def layering(gwb_levelset, cgb_levelset, lut_dir, n_layers=10,
     return depth_img, layer_img, boundary_img
 
 
-def sampling(boundary_img, intensity_img, save_data=True, base_name=None):
+def profile_sampling(boundary_img, intensity_img, save_data=True, base_name=None):
 
     # load the data as well as filenames and headers for saving later
     boundary_img = load_volume(boundary_img)
@@ -101,12 +119,10 @@ def sampling(boundary_img, intensity_img, save_data=True, base_name=None):
 
     intensity_data = load_volume(intensity_img).get_data()
 
-    if not base_name:
-        dir_name = os.path.dirname(intensity_img)
-        base_name = os.path.basename(intensity_img)
-        base_name = base_name[:base_name.find('.')]
-
-    cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+    try:
+        cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+    except ValueError:
+        pass
 
     sampler = cbstoolsjcc.LaminarProfileSampling()
     sampler.setIntensityImage(cbstoolsjcc.JArray('float')((intensity_data.flatten('F')).astype(float)))
@@ -117,12 +133,74 @@ def sampling(boundary_img, intensity_img, save_data=True, base_name=None):
     sampler.execute()
 
     profile_data = np.reshape(np.array(sampler.getProfileMappedIntensityImage(),
-                             dtype=np.float32), boundary_data.shape,'F')
+                              dtype=np.float32), boundary_data.shape,'F')
 
     profile_img = nb.Nifti1Image(profile_data, aff, hdr)
 
     if save_data:
+        if not base_name:
+            if not isinstance(intensity_img, basestring):
+                base_name = os.getcwd()
+                print "saving to %s"%base_name
+            else:
+                dir_name = os.path.dirname(intensity_img)
+                base_name = os.path.basename(intensity_img)
+                base_name = base_name[:base_name.find('.')]
         save_volume(os.path.join(dir_name, base_name+'_profiles.nii.gz'),
                     profile_img)
 
     return profile_img
+
+
+def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
+
+    profile_img = load_volume(profile_file)
+    profile_data = profile_im.get_data()
+    profile_len = profile_data.shape[3]
+    hdr = profile_img.get_header()
+    aff = profile_img.get_affine()
+
+    in_coords = load_mesh_geometry(surf_mesh)['coords']
+    in_faces = load_mesh_geometry(surf_mesh)['faces']
+
+    try:
+        cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+    except ValueError:
+        pass
+
+    mesher = cbstoolsjcc.LaminarProfileMeshing()
+
+    mesher.setDimensions(profile_data.shape)
+    zooms = [x.item() for x in hdr.get_zooms()]
+    mesher.setResolutions(zooms[0], zooms[1], zooms[2])
+
+    mesher.setProfileSurfaceImage(cbstoolsjcc.JArray('float')((profile_data.flatten('F')).astype(float)))
+    mehser.setSurfacePoints(cbstoolsjcc.JArray('float')(coords.flatten().astype(float)))
+    mesher.setSurfaceTriangles(cbstoolsjcc.JArray('float')(faces.flatten().astype(float)))
+
+    mesher.execute()
+
+    out_coords = np.zeros((in_coords.shape[0], in_coords.shape[1], profile_len))
+    out_faces = np.zeros((in_faces.shape[0], in_faces.shape[1], profile_len))
+
+    for i in range(profile_len):
+        out_coords[:,:,i] = np.reshape(np.array(mesher.getSampledSurfacePoints(i),
+                                       dtype=np.float32),in_coords.shape)
+        out_faces[:,:,i] =  np.reshape(np.array(mesher.getSampledSurfaceTriangles(i),
+                                       dtype=np.float32),in_faces.shape)
+
+    if save_data:
+        if not base_name:
+            if not isinstance(profile_file, basestring):
+                base_name = os.getcwd()
+                print "saving to %s"%base_name
+            else:
+                dir_name = os.path.dirname(intensity_img)
+                base_name = os.path.basename(intensity_img)
+                base_name = base_name[:base_name.find('.')]
+
+        for i in range(profile_len):
+            save_mesh_geometry(os.path.join(dir_name, base_name+'_%s.vtk'%str(i)),
+                               {'coords':out_coords[:,:,i], 'faces':faces[:,:,i]})
+
+    return {'coords':out_coords, 'faces':out_faces}
