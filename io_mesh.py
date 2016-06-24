@@ -199,6 +199,7 @@ def save_mesh_geometry(surf_mesh,coords,faces):
 
 
 def save_obj(surf_mesh,coords,faces):
+    n_vert=len(coords)
     XYZ=coords.tolist()
     Tri=faces.tolist()
     with open(surf_mesh,'w') as s:
