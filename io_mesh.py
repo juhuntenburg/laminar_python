@@ -27,7 +27,7 @@ def load_mesh_geometry(surf_mesh):
         else:
             raise ValueError('surf_mesh must be a either filename or a dictionary '
                              'containing items with keys "coords" and "faces"')
-    return coords, faces
+    return {'coords':coords,'faces':faces}
 
 
 # function to load mesh data
@@ -172,30 +172,35 @@ def read_obj(file):
                  Polys.extend(line.split())
     Polys=map(int,Polys)
     npPolys=np.array(Polys)
-    triangles=list(chunks(Polys,3))
+    triangles=np.array(list(chunks(Polys,3)))
     return XYZ, triangles;
 
 
 
 # function to save mesh geometry
-def save_mesh_geometry(surf_mesh,coords,faces):
+def save_mesh_geometry(fname,surf_dict):
     # if input is a filename, try to load it with nibabel
-    if isinstance(surf_mesh, basestring):
-        if (surf_mesh.endswith('orig') or surf_mesh.endswith('pial') or
-                surf_mesh.endswith('white') or surf_mesh.endswith('sphere') or
-                surf_mesh.endswith('inflated')):
-            save_freesurfer(surf_mesh,coords,faces)
-        elif surf_mesh.endswith('gii'):
-            save_gift(surf_mesh,coords,faces)
-        elif surf_mesh.endswith('vtk'):
-            save_vtk(surf_mesh,coords,faces)
-        elif surf_mesh.endswith('ply'):
-            save_ply(surf_mesh,coords,faces)
-        elif surf_mesh.endswith('obj'):
-            save_obj(surf_mesh,coords,faces)
+    if isinstance(fname, basestring) and isinstance(surf_dict,dict):
+        if (fname.endswith('orig') or fname.endswith('pial') or
+                fname.endswith('white') or fname.endswith('sphere') or
+                fname.endswith('inflated')):
+            print('please implement a lovely save_freesurfer commmand')
+#            save_freesurfer(fname,surf_dict['coords'],surf_dict['faces'])
+        elif fname.endswith('gii'):
+            print('please implement a lovely save_gifti command')
+            write_gifti(fname,surf_dict['coords'],surf_dict['faces'])
+        elif fname.endswith('vtk'):
+            if 'data' in surf_dict.keys():
+                write_vtk(fname,surf_dict['coords'],surf_dict['faces'],surf_dict['data'])
+            else:
+                write_vtk(fname,surf_dict['coords'],surf_dict['faces'])
+        elif fname.endswith('ply'):
+            write_ply(fname,surf_dict['coords'],surf_dict['faces'])
+        elif fname.endswith('obj'):
+            save_obj(fname,surf_dict['coords'],surf_dict['faces'])
             print('to mesh view in brainview,\n first use average_objects on the .obj to generate surface normals,\n otherwise mesh is invisible')
     else:
-        raise ValueError('surf_mesh must be a either filename')
+        raise ValueError('fname must be a filename and surf_dict must be a dictionary')
 
 
 def save_obj(surf_mesh,coords,faces):
@@ -275,7 +280,6 @@ def write_vtk(filename, vertices, faces, data=None, comment=None):
     '''
 
     import pandas as pd
-    import numpy as np
     # infer number of vertices and faces
     number_vertices=vertices.shape[0]
     number_faces=faces.shape[0]
@@ -321,7 +325,6 @@ def write_vtk(filename, vertices, faces, data=None, comment=None):
 
 
 def write_ply(filename, vertices, faces, comment=None):
-    import numpy as np
     import pandas as pd
     print "writing ply format"
     # infer number of vertices and faces
