@@ -3,15 +3,15 @@ import numpy as np
 
 # function to read volumetric tissue classification and turn into 3D array
 def load_volume(mri_vol):
-  # if input is a filename, try to load it
+    # if input is a filename, try to load it
     if isinstance(mri_vol, basestring):
-  # importing nifti files
+    # importing nifti files
         if (mri_vol.endswith('nii') or mri_vol.endswith('nii.gz')):
-           img=nb.load(mri_vol)
-           img_data=np.array(img.get_data())
-           img_affine=img.get_affine()
-           img_header=img.get_header()
-   # importing mnc files using pyminc, suggest to download if missing
+            img=nb.load(mri_vol)
+            img_data=np.array(img.get_data())
+            img_affine=img.get_affine()
+            img_header=img.get_header()
+            # importing mnc files using pyminc, suggest to download if missing
         elif mri_vol.endswith('mnc'):
             try:
                 img=nb.minc2.load(mri_vol)
@@ -21,18 +21,19 @@ def load_volume(mri_vol):
             except ValueError:
                 print "loading .mnc files requires h5py, try installing with:"
                 print '"sudo pip install h5py"'
-   # option to add in more file types here, eg analyze
-   # if volume is already an np array
-#    elif isinstance(mri_vol,np.ndarray):
-#         img_data=np.array(mri_vol)
+# option to add in more file types here, eg analyze
+# if volume is already an np array
+# elif isinstance(mri_vol,np.ndarray):
+# img_data=np.array(mri_vol)
     else:
-            raise ValueError('volume must be a either filename or a numpy array')
+                raise ValueError('volume must be a either filename or a numpy array')
     return img_data, img_header, img_affine;
 
 
+# function to save volume data
 def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOBBER=True):
-"""
-    Convenience function to write data to file, will write .nii as default
+    """
+    Function to write volume data to file. Filetype is based on filename suffix
     Input:
         - full_fileName:    you can figure that out
         - data:             numpy array
@@ -42,8 +43,8 @@ def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOB
         - CLOBBER:          overwrite existing file
     """
     import os
-    import nibabel as nb
-    if (mri_vol.endswith('nii') or mri_vol.endswith('nii.gz')):
+    img = nb.Nifti1Image(data, aff, header=header)
+    if (full_fileName.endswith('nii') or full_fileName.endswith('nii.gz')):
         img = nb.Nifti1Image(data, aff, header=header)
         if data_type is not None:  # if there is a particular data_type chosen, set it
         # data=data.astype(data_type)
@@ -52,6 +53,7 @@ def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOB
             img.to_filename(full_fileName)
         else:
             print("This file exists and CLOBBER was set to false, file not saved.")
-  #   elif (mri_vol.endswith('mnc'):
-       
+ #    elif full_fileName.endswith('mnc')
 
+
+# function to make 1D arrays from meshes geometry and data
