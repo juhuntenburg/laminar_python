@@ -33,14 +33,13 @@ def load_volume(mri_vol):
 # function to save volume data
 def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOBBER=True):
     """
-    Convenience function to write nii data to file
+    Function to write volume data to file. Filetype is based on filename suffix
     Input:
         - full_fileName:    you can figure that out
         - data:             numpy array
         - aff:              affine matrix
         - header:        header data to write to file (use img.header to get the header of root file)
         - data_type:        numpy data type ('uint32', 'float32' etc)
-        - CLOBBER:          overwrite existing file
         - CLOBBER:          overwrite existing file
     """
     import os
@@ -54,8 +53,7 @@ def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOB
             img.to_filename(full_fileName)
         else:
             print("This file exists and CLOBBER was set to false, file not saved.")
-
-
+ #    elif full_fileName.endswith('mnc')
 
 
 # function to make 1D arrays from meshes geometry and data
