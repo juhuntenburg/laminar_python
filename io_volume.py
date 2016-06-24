@@ -6,18 +6,19 @@ def load_volume(mri_vol):
   # if input is a filename, try to load it
     if isinstance(mri_vol, basestring):
   # importing nifti files
-        if (mri_vol.endswith('nii') or mri_vol.endswith('nii.gz')):
+        if mri_vol.endswith('nii'):
            img=nb.load(mri_vol)
            img_data=np.array(img.get_data())
-           img_affine=img.get_affine()
-           img_header=img.get_header()
+           img_affine=img.affine
+           img_header=img.header
    # importing mnc files using pyminc, suggest to download if missing
         elif mri_vol.endswith('mnc'):
             try:
                 img=nb.minc2.load(mri_vol)
                 img_data=np.array(img.get_data())
-                img_affine=img.get_affine()
-                img_header=img.get_header()
+                img_affine=img.affine
+# currently unclear what to do with minc header.
+#                img_header=img.header
             except ValueError:
                 print "loading .mnc files requires h5py, try installing with:"
                 print '"sudo pip install h5py"'
@@ -30,9 +31,11 @@ def load_volume(mri_vol):
     return img_data, img_header, img_affine;
 
 
-def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOBBER=True):
-"""
-    Convenience function to write data to file, will write .nii as default
+
+# function to save volume data
+def niiSave(full_fileName, data, aff, header=None, data_type='float32', CLOBBER=True):
+    """
+    Convenience function to write nii data to file
     Input:
         - full_fileName:    you can figure that out
         - data:             numpy array
@@ -40,10 +43,11 @@ def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOB
         - header:        header data to write to file (use img.header to get the header of root file)
         - data_type:        numpy data type ('uint32', 'float32' etc)
         - CLOBBER:          overwrite existing file
+        - CLOBBER:          overwrite existing file
     """
     import os
-    import nibabel as nb
-    if (mri_vol.endswith('nii') or mri_vol.endswith('nii.gz')):
+    img = nb.Nifti1Image(data, aff, header=header)
+    if (full_fileName.endswith('nii') or full_fileName.endswith('nii.gz')):
         img = nb.Nifti1Image(data, aff, header=header)
         if data_type is not None:  # if there is a particular data_type chosen, set it
         # data=data.astype(data_type)
@@ -52,6 +56,8 @@ def save_volume(full_fileName, data, aff, header=None, data_type='float32', CLOB
             img.to_filename(full_fileName)
         else:
             print("This file exists and CLOBBER was set to false, file not saved.")
-  #   elif (mri_vol.endswith('mnc'):
-       
 
+
+
+
+# function to make 1D arrays from meshes geometry and data
