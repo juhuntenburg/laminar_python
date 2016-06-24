@@ -176,3 +176,84 @@ def read_obj(file):
     return XYZ, triangles;
 
 
+
+# function to save mesh geometry
+def save_mesh_geometry(surf_mesh,coords,faces):
+    # if input is a filename, try to load it with nibabel
+    if isinstance(surf_mesh, basestring):
+        if (surf_mesh.endswith('orig') or surf_mesh.endswith('pial') or
+                surf_mesh.endswith('white') or surf_mesh.endswith('sphere') or
+                surf_mesh.endswith('inflated')):
+            save_freesurfer(surf_mesh,coords,faces)
+        elif surf_mesh.endswith('gii'):
+            save_gift(surf_mesh,coords,faces)
+        elif surf_mesh.endswith('vtk'):
+            save_vtk(surf_mesh,coords,faces)
+        elif surf_mesh.endswith('ply'):
+            save_ply(surf_mesh,coords,faces)
+        elif surf_mesh.endswith('obj'):
+            save_obj(surf_mesh,coords,faces)
+            print('to mesh view in brainview,\n first use average_objects on the .obj to generate surface normals,\n otherwise mesh is invisible')
+    else:
+        raise ValueError('surf_mesh must be a either filename')
+
+
+def save_obj(surf_mesh,coords,faces):
+    XYZ=coords.tolist()
+    Tri=faces.tolist()
+    with open(surf_mesh,'w') as s:
+        line1="P 0.3 0.3 0.4 10 1 " + str(n_vert) + "\n"
+        s.write(line1)
+        k=-1
+        for a in XYZ:
+            k+=1
+            cor=' ' + ' '.join(map(str, XYZ[k]))
+            s.write('%s\n' % cor)
+            s.write('\n')
+        for a in XYZ:
+            s.write(' 0 0 0\n')
+        s.write('\n')
+        l=' ' + str(n_vert*2-4)+'\n'
+        s.write(l)
+        s.write(' 0 1 1 1 1\n')
+        s.write('\n')
+        nt=n_vert*6-12
+        Triangles=np.arange(3,nt+1,3)
+        Rounded8=np.shape(Triangles)[0]/8
+        N8=8*Rounded8
+        Triangles8=Triangles[0:N8]
+        RowsOf8=np.split(Triangles8,N8/8)
+        for r in RowsOf8:
+            L=r.tolist()
+            Lint=map(int,L)
+            Line=' ' + ' '.join(map(str, Lint))
+            s.write('%s\n' % Line)
+        L=Triangles[N8:].tolist()
+        Lint=map(int,L)
+        Line=' ' + ' '.join(map(str, Lint))
+        s.write('%s\n' % Line)
+        s.write('\n')
+        ListOfTriangles=np.array(Tri).flatten()
+        Rounded8=np.shape(ListOfTriangles)[0]/8
+        N8=8*Rounded8
+        Triangles8=ListOfTriangles[0:N8]
+        ListTri8=ListOfTriangles[0:N8]
+        RowsOf8=np.split(Triangles8,N8/8)
+        for r in RowsOf8:
+            L=r.tolist()
+            Lint=map(int,L)
+            Line=' ' + ' '.join(map(str, Lint))
+            s.write('%s\n' % Line)
+        L=ListOfTriangles[N8:].tolist()
+        Lint=map(int,L)
+        Line=' ' + ' '.join(map(str, Lint))
+        s.write('%s\n' % Line)
+
+
+
+
+
+
+
+
+
