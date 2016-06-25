@@ -12,6 +12,7 @@ import nibabel as nb
 import cbstoolsjcc
 import os
 from io_volume import load_volume, save_volume
+from io_mesh import load_mesh_geometry, save_mesh_geometry
 
 def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
 
@@ -47,9 +48,8 @@ def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
             else:
                 dir_name = os.path.dirname(tissue_prob_img)
                 base_name = os.path.basename(tissue_prob_img)
-                base_name = base_name[:base_name.find('.')]
-        save_volume(os.path.join(dir_name, base_name+'_levelset.nii.gz'),
-                    levelset_img)
+                base_name = os.path.join(dir_name, base_name[:base_name.find('.')])
+        save_volume(base_name+'_levelset.nii.gz', levelset_img)
 
     return levelset_img
 
@@ -100,11 +100,11 @@ def layering(gwb_levelset, cgb_levelset, lut_dir, n_layers=10,
             else:
                 dir_name = os.path.dirname(gwb_levelset)
                 base_name = os.path.basename(gwb_levelset)
-                base_name = base_name[:base_name.find('.')]
+                base_name = os.path.join(dir_name, base_name[:base_name.find('.')])
 
-        save_volume(os.path.join(dir_name, base_name+'_depth.nii.gz'), depth_img)
-        save_volume(os.path.join(dir_name, base_name + '_layers.nii.gz'), layer_img)
-        save_volume(os.path.join(dir_name, base_name + '_boundaries.nii.gz'), boundary_img)
+        save_volume(base_name + '_depth.nii.gz', depth_img)
+        save_volume(base_name + '_layers.nii.gz', layer_img)
+        save_volume(base_name + '_boundaries.nii.gz', boundary_img)
 
     return depth_img, layer_img, boundary_img
 
@@ -113,7 +113,7 @@ def profile_sampling(boundary_img, intensity_img, save_data=True, base_name=None
 
     # load the data as well as filenames and headers for saving later
     boundary_img = load_volume(boundary_img)
-    boundary_data = boundary_im.get_data()
+    boundary_data = boundary_img.get_data()
     hdr = boundary_img.get_header()
     aff = boundary_img.get_affine()
 
@@ -145,9 +145,8 @@ def profile_sampling(boundary_img, intensity_img, save_data=True, base_name=None
             else:
                 dir_name = os.path.dirname(intensity_img)
                 base_name = os.path.basename(intensity_img)
-                base_name = base_name[:base_name.find('.')]
-        save_volume(os.path.join(dir_name, base_name+'_profiles.nii.gz'),
-                    profile_img)
+                base_name = os.path.join(dir_name, base_name[:base_name.find('.')])
+        save_volume(base_name+'_profiles.nii.gz', profile_img)
 
     return profile_img
 
@@ -155,7 +154,7 @@ def profile_sampling(boundary_img, intensity_img, save_data=True, base_name=None
 def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
 
     profile_img = load_volume(profile_file)
-    profile_data = profile_im.get_data()
+    profile_data = profile_img.get_data()
     profile_len = profile_data.shape[3]
     hdr = profile_img.get_header()
     aff = profile_img.get_affine()
@@ -175,19 +174,22 @@ def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
     mesher.setResolutions(zooms[0], zooms[1], zooms[2])
 
     mesher.setProfileSurfaceImage(cbstoolsjcc.JArray('float')((profile_data.flatten('F')).astype(float)))
-    mehser.setSurfacePoints(cbstoolsjcc.JArray('float')(coords.flatten().astype(float)))
-    mesher.setSurfaceTriangles(cbstoolsjcc.JArray('float')(faces.flatten().astype(float)))
+    mesher.setSurfacePoints(cbstoolsjcc.JArray('float')(in_coords.flatten().astype(float)))
+    mesher.setSurfaceTriangles(cbstoolsjcc.JArray('int')(in_faces.flatten().astype(int)))
 
     mesher.execute()
 
     out_coords = np.zeros((in_coords.shape[0], in_coords.shape[1], profile_len))
     out_faces = np.zeros((in_faces.shape[0], in_faces.shape[1], profile_len))
 
+    mesh_list = []
     for i in range(profile_len):
-        out_coords[:,:,i] = np.reshape(np.array(mesher.getSampledSurfacePoints(i),
-                                       dtype=np.float32),in_coords.shape)
-        out_faces[:,:,i] =  np.reshape(np.array(mesher.getSampledSurfaceTriangles(i),
-                                       dtype=np.float32),in_faces.shape)
+        current_mesh = {}
+        current_mesh['coords'] = np.reshape(np.array(mesher.getSampledSurfacePoints(i),
+                                            dtype=np.float32),in_coords.shape)
+        current_mesh['faces'] =  np.reshape(np.array(mesher.getSampledSurfaceTriangles(i),
+                                            dtype=np.float32),in_faces.shape)
+        mesh_list.append(current_mesh)
 
     if save_data:
         if not base_name:
@@ -197,10 +199,10 @@ def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
             else:
                 dir_name = os.path.dirname(intensity_img)
                 base_name = os.path.basename(intensity_img)
-                base_name = base_name[:base_name.find('.')]
+                base_name = os.path.join(dir_name, base_name[:base_name.find('.')])
 
-        for i in range(profile_len):
-            save_mesh_geometry(os.path.join(dir_name, base_name+'_%s.vtk'%str(i)),
-                               {'coords':out_coords[:,:,i], 'faces':faces[:,:,i]})
+        for i in range(len(mesh_list)):
+            save_mesh_geometry(base_name+'_%s.vtk'%str(i), mesh_list[i])
 
-    return {'coords':out_coords, 'faces':out_faces}
+
+    return mesh_list
