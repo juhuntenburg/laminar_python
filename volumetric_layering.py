@@ -1,11 +1,4 @@
-# prior to this:
-# 1.create a jar file with all the classes:
-# jar cvf intensity.jar de/mpg/cbs/python/IntensityBackgroundEstimator.class de/mpg/cbs/utilities/Numerics.class de/mpg/cbs/libraries/ImageStatistics.class
-# 2.compile with jcc:
-# python -m jcc --jar intensity.jar --python intensity --build --classpath /home/pilou/Code/cbs/bazin --install --install-dir /home/pilou/Code/cbs/bazin/pylibs/
-# 3.export library path to python:
-# export PYTHONPATH=$PYTHONPATH:/home/pilou/Code/cbs/bazin/pylibs
-
+# adapt the output so that files can also be saved in other formats than nifti
 import argparse
 import numpy as np
 import nibabel as nb
@@ -14,7 +7,30 @@ import os
 from io_volume import load_volume, save_volume
 from io_mesh import load_mesh_geometry, save_mesh_geometry
 
+
 def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
+
+    '''
+    Creates levelset surface representations from a tissue classification.
+
+        Parameters
+        -----------
+        tissue_prob_img : Tissue segmentation to be turned into levelset.
+            Either a binary tissue classfication with value 1 inside and 0
+            outside the to-be-created surface, or ????
+            Can be a path to a Nifti file or Nibabel image object.
+        save_data : Whether the output levelset image should be saved
+            (default is 'True').
+        base_name : If save_data is set to True, this Parameter can be used to
+            specify where the output should be saved. Thus can be the path to a
+            directory or a full filename. The suffix 'levelset' will be added
+            to the filename.If None (default), the output will be saved to the
+            current directory.
+
+        Returns
+        -------
+        Levelset representation of surface as Nibabel image object
+    '''
 
     # load the data as well as filenames and headers for saving later
     prob_img = load_volume(tissue_prob_img)
@@ -53,8 +69,8 @@ def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
 
     return levelset_img
 
-def layering(gwb_levelset, cgb_levelset, lut_dir, n_layers=10,
-             save_data=True, base_name=None):
+def layering(gwb_levelset, cgb_levelset, n_layers=10,
+             save_data=True, base_name=None, lut_dir='lut/'):
 
     # load the data as well as filenames and headers for saving later
     gwb_img = load_volume(gwb_levelset)
@@ -174,8 +190,8 @@ def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
     mesher.setResolutions(zooms[0], zooms[1], zooms[2])
 
     mesher.setProfileSurfaceImage(cbstoolsjcc.JArray('float')((profile_data.flatten('F')).astype(float)))
-    mesher.setSurfacePoints(cbstoolsjcc.JArray('float')(in_coords.flatten().astype(float)))
-    mesher.setSurfaceTriangles(cbstoolsjcc.JArray('int')(in_faces.flatten().astype(int)))
+    mesher.setInputSurfacePoints(cbstoolsjcc.JArray('float')(in_coords.flatten().astype(float)))
+    mesher.setInputSurfaceTriangles(cbstoolsjcc.JArray('int')(in_faces.flatten().astype(int)))
 
     mesher.execute()
 
