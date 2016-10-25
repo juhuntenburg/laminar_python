@@ -241,6 +241,32 @@ def profile_sampling(boundary_img, intensity_img,
 
 def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
 
+    '''
+    Converting the levelset representation of multiple intracorticle surfaces
+    into multiple surface meshes.
+
+        Parameters
+        -----------
+        profile_file : Levelset representations of different intracortical
+            layers in a 4D image (4th dimensions representing the layers).
+            Can be created from GM and WM leveset with the "layering" function.
+            Can be path to a Nifti file or Nibabel image object.
+        surf_mesh : Original surface mesh serving as a reference for the
+                    topology of all intracortical surfaces.
+        save_data : Whether the output meshes should be saved
+            (default is 'True').
+        base_name : If save_data is set to True, this parameter can be used to
+            specify where the output should be saved. Thus can be the path to a
+            directory or a full filename. A suffix indicating the number of the
+            layer will be added. If None (default), the output will be saved to
+            the current directory.
+
+        Returns
+        -------
+        A list of intracortical surface meshes, each represented as a
+        dictionary with entries 'coords' and 'faces'
+    '''
+
     profile_img = load_volume(profile_file)
     profile_data = profile_img.get_data()
     profile_len = profile_data.shape[3]
@@ -280,17 +306,19 @@ def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
         mesh_list.append(current_mesh)
 
     if save_data:
-        if not base_name:
+        if base_name:
+            base_name += '_'
+        else:
             if not isinstance(profile_file, basestring):
-                base_name = os.getcwd()
-                print "saving to %s"%base_name
+                base_name = os.getcwd() + '/'
+                print "saving to %s" % base_name
             else:
                 dir_name = os.path.dirname(intensity_img)
                 base_name = os.path.basename(intensity_img)
-                base_name = os.path.join(dir_name, base_name[:base_name.find('.')])
+                base_name = os.path.join(dir_name,
+                                         base_name[:base_name.find('.')]) + '_'
 
         for i in range(len(mesh_list)):
-            save_mesh_geometry(base_name+'_%s.vtk'%str(i), mesh_list[i])
-
+            save_mesh_geometry(base_name + '%s.vtk' % str(i), mesh_list[i])
 
     return mesh_list
