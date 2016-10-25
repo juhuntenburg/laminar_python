@@ -5,7 +5,7 @@ Tools for laminar analysis of the cortical sheet in Python
 `git clone https://github.com/juhuntenburg/laminar_python.git`
 
 2. Download and unpack the Python egg containing the cbstools compiled in Python:
-[Python egg](https://github.com/piloubazin/cbstools-public/blob/master/python/cbstoolsjcc-python.tar.gz)
+https://github.com/piloubazin/cbstools-public/blob/master/python/cbstoolsjcc-python.tar.gz
 
 `tar -xf cbstoolsjcc-python.tar.gz`
 
