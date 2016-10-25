@@ -1,7 +1,7 @@
 # laminar_python
-Tools for laminar analysis of the cortical sheet in Python.
+Tools for laminar analysis of the cortical sheet in Python. Most modules are Python versions of [CBS Tools](https://www.nitrc.org/projects/cbs-tools/)
 
-Most modules are Python version of [CBS Tools](https://www.nitrc.org/projects/cbs-tools/)
+## How to use this repo
 
 1. Clone this repository
 
