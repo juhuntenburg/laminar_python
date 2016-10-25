@@ -239,6 +239,8 @@ def profile_sampling(boundary_img, intensity_img,
     return profile_img
 
 
+# There is something wrong with this, all the created surfaces have the same
+# vertex coordinates
 def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
 
     '''
