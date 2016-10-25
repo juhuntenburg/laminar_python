@@ -8,8 +8,6 @@ from io_volume import load_volume, save_volume
 from io_mesh import load_mesh_geometry, save_mesh_geometry
 
 
-import pdb
-
 def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
 
     '''
@@ -172,6 +170,32 @@ def layering(gwb_levelset, cgb_levelset, n_layers=10, lut_dir='lut/',
 def profile_sampling(boundary_img, intensity_img,
                      save_data=True, base_name=None):
 
+    '''
+    Sampling data on multiple intracortical layers.
+
+        Parameters
+        -----------
+        boundary_img : Levelset representations of different intracortical
+            layers in a 4D image (4th dimensions representing the layers).
+            Can be created from GM and WM leveset with the "layering" function.
+            Can be path to a Nifti file or Nibabel image object.
+        intensity_img : Image from which data should be sampled. Can be path to
+            a Nifti file or Nibabel image object.
+        save_data : Whether the output profile image should be saved
+            (default is 'True').
+        base_name : If save_data is set to True, this parameter can be used to
+            specify where the output should be saved. Thus can be the path to a
+            directory or a full filename. The suffix 'profiles' will be added
+            to filename. If None (default), the output will be saved to the
+            current directory.
+
+        Returns
+        -------
+        Nibabel image object (4D), where the 4th dimension represents the
+        different cortical surfaces, i.e. the profile for each voxel in the
+        3D space.
+    '''
+
     # load the data as well as filenames and headers for saving later
     boundary_img = load_volume(boundary_img)
     boundary_data = boundary_img.get_data()
@@ -199,15 +223,18 @@ def profile_sampling(boundary_img, intensity_img,
     profile_img = nb.Nifti1Image(profile_data, aff, hdr)
 
     if save_data:
-        if not base_name:
+        if base_name:
+            base_name += '_'
+        else:
             if not isinstance(intensity_img, basestring):
-                base_name = os.getcwd()
+                base_name = os.getcwd() + '/'
                 print "saving to %s" % base_name
             else:
                 dir_name = os.path.dirname(intensity_img)
                 base_name = os.path.basename(intensity_img)
-                base_name = os.path.join(dir_name, base_name[:base_name.find('.')])
-        save_volume(base_name+'_profiles.nii.gz', profile_img)
+                base_name = os.path.join(dir_name,
+                                         base_name[:base_name.find('.')]) + '_'
+        save_volume(base_name+'profiles.nii.gz', profile_img)
 
     return profile_img
 
