@@ -1,7 +1,9 @@
-# laminar_python
-Tools for laminar analysis of the cortical sheet in Python. Most modules are Python versions of [CBS Tools](https://www.nitrc.org/projects/cbs-tools/)
+# Python tools for laminar analysis of the cortical sheet in Python.
 
-## How to use this repo
+This repository contains Python versions of several modules of [CBS Tools](https://www.nitrc.org/projects/cbs-tools/) that are useful for laminar
+analysis. [1,2]
+
+### How to use laminar_python
 
 1. Clone this repository
 
@@ -18,6 +20,10 @@ https://github.com/piloubazin/cbstools-public/blob/master/python/cbstoolsjcc-pyt
 
 
 You should now be able to import the modules in Python. Try:
-    ```python
-    import volumetric_layering
-    ```
+```python
+import volumetric_layering
+```
+
+[1] Bazin et al. (2014). A computational framework for ultra-high resolution cortical segmentation at 7Tesla. http://doi.org/10.1016/j.neuroimage.2013.03.077
+[2] Waehnert et al. (2014). Anatomically motivated modeling of cortical
+laminae. http://doi.org/10.1016/j.neuroimage.2013.03.078
