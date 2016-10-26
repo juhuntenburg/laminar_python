@@ -3,7 +3,12 @@
 This repository contains Python versions of several modules of [CBS Tools](https://www.nitrc.org/projects/cbs-tools/) that are useful for laminar
 analysis. [1] [2]
 
+
 ### How to use laminar_python
+
+1. Make sure required Python libraries are installed
+
+`pip install numpy argparse os nibabel`
 
 1. Clone this repository
 
