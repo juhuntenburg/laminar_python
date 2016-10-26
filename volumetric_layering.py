@@ -74,7 +74,7 @@ def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
     return levelset_img
 
 
-def layering(gwb_levelset, cgb_levelset, n_layers=10, lut_dir='lut/',
+def layering(gwb_levelset, cgb_levelset, n_layers=10, lut_dir='lookuptables/',
              save_data=True, base_name=None):
 
     '''
