@@ -1,0 +1,5 @@
+cbstoolsjcc.egg-info/PKG-INFO
+cbstoolsjcc.egg-info/SOURCES.txt
+cbstoolsjcc.egg-info/dependency_links.txt
+cbstoolsjcc.egg-info/not-zip-safe
+cbstoolsjcc.egg-info/top_level.txt
