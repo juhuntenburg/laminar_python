@@ -2,10 +2,10 @@
 import argparse
 import numpy as np
 import nibabel as nb
-import cbstoolsjcc
+#import cbstoolsjcc
 import os
-from io_volume import load_volume, save_volume
-from io_mesh import load_mesh_geometry, save_mesh_geometry
+#from io_volume import load_volume, save_volume
+#from io_mesh import load_mesh_geometry, save_mesh_geometry
 
 
 def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
