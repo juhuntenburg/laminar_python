@@ -15,7 +15,7 @@ analysis. [1] [2]
 ```
 cd /home/workspace
 git clone https://github.com/juhuntenburg/laminar_python.git
-export PYTHONPATH=$PYTHONPATH:/home/workpace/
+export PYTHONPATH=$PYTHONPATH:/home/workspace/
 ```
 
 You should now be able to import laminar_python in Python, try:
