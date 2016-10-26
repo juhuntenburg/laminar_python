@@ -24,10 +24,15 @@ https://github.com/piloubazin/cbstools-public/blob/master/python/cbstoolsjcc-pyt
    `export PYTHONPATH=$PYTHONPATH:/path/to/eggdirectory/`
 
 
-You should now be able to import the modules in Python. Try:
+You should now be able to import the modules in Python, try:
 ```python
 import volumetric_layering
 ```
+
+You can find an example showcasing the different functions in the laminar_python_demo.ipynb notebook. 
+
+
+References :
 
 [1] Bazin et al. (2014). A computational framework for ultra-high resolution cortical segmentation at 7Tesla. http://doi.org/10.1016/j.neuroimage.2013.03.077
 
