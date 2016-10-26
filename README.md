@@ -8,7 +8,7 @@ analysis. [1] [2]
 
 1. Make sure required Python libraries are installed
 
-   `pip install numpy argparse os nibabel`
+`pip install numpy argparse os nibabel`
 
 2. Clone this repository to a directory that is in your PYTHONPATH, e.g
 
@@ -23,7 +23,7 @@ You should now be able to import laminar_python in Python, try:
 import laminar_python
 ```
 
-You can find an example showcasing the different functions in the laminar_python_demo.ipynb notebook. 
+You can find an example showcasing the different functions in the laminar_python_demo.ipynb notebook.
 
 
 References :
