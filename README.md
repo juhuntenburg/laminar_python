@@ -8,7 +8,9 @@ analysis. [1] [2]
 
 1. Make sure required Python libraries are installed
 
-`pip install numpy argparse os nibabel`
+```
+pip install numpy argparse os nibabel
+```
 
 2. Clone this repository to a directory that is in your PYTHONPATH, e.g
 
