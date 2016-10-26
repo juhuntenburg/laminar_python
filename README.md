@@ -10,23 +10,17 @@ analysis. [1] [2]
 
    `pip install numpy argparse os nibabel`
 
-2. Clone this repository
+2. Clone this repository to a directory that is in your PYTHONPATH, e.g
 
-   `git clone https://github.com/juhuntenburg/laminar_python.git`
+```
+cd /home/workspace
+git clone https://github.com/juhuntenburg/laminar_python.git
+export PYTHONPATH=$PYTHONPATH:/home/workpace/
+```
 
-3. Download and unpack the Python egg containing the cbstools compiled in Python:
-https://github.com/piloubazin/cbstools-public/blob/master/python/cbstoolsjcc-python.tar.gz
-
-   `tar -xf cbstoolsjcc-python.tar.gz`
-
-4. Add the location of the unpacked Python egg directory to your PYTHONPATH
-
-   `export PYTHONPATH=$PYTHONPATH:/path/to/eggdirectory/`
-
-
-You should now be able to import the modules in Python, try:
+You should now be able to import laminar_python in Python, try:
 ```python
-import volumetric_layering
+import laminar_python
 ```
 
 You can find an example showcasing the different functions in the laminar_python_demo.ipynb notebook. 
