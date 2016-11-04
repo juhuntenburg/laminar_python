@@ -2,10 +2,10 @@
 import argparse
 import numpy as np
 import nibabel as nb
-#import cbstoolsjcc
+import cbstoolsjcc
 import os
-#from io_volume import load_volume, save_volume
-#from io_mesh import load_mesh_geometry, save_mesh_geometry
+from io_volume import load_volume, save_volume
+from io_mesh import load_mesh_geometry, save_mesh_geometry
 
 
 def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
@@ -74,7 +74,7 @@ def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
     return levelset_img
 
 
-def layering(gwb_levelset, cgb_levelset, n_layers=10, lut_dir='lut/',
+def layering(gwb_levelset, cgb_levelset, n_layers=10, lut_dir='lookuptables/',
              save_data=True, base_name=None):
 
     '''
