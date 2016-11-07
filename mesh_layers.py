@@ -32,6 +32,7 @@ def convert_mesh_voxel2mipav(mesh,volume):
     import numpy as np
     affine=volume.get_affine()
     dim = [affine[0, 0], affine[1, 1], affine[2, 2]]
-    idx = np.asarray((mesh['coords'] / dim), dtype='float')
-    mesh['coords']=idx
-    return mesh;
+#Get absolute as sometimes dim axes are flipped but voxel coordinates are always positive
+    idx = np.absolute(np.asarray((mesh['coords'] / dim), dtype='float'))
+    meshcoords=idx
+    return meshcoords;

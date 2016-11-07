@@ -1,4 +1,4 @@
-import nibabel as nb
+import nibabel
 import numpy as np
 
 # function to load mesh geometry
@@ -198,7 +198,7 @@ def save_mesh_geometry(fname,surf_dict):
             write_ply(fname,surf_dict['coords'],surf_dict['faces'])
         elif fname.endswith('obj'):
             save_obj(fname,surf_dict['coords'],surf_dict['faces'])
-            print('to mesh view in brainview,\n first use average_objects on the .obj to generate surface normals,\n otherwise mesh is invisible')
+            print('to view mesh in brainview,\n first use average_objects on the .obj to generate surface normals,\n otherwise mesh is invisible')
     else:
         raise ValueError('fname must be a filename and surf_dict must be a dictionary')
 

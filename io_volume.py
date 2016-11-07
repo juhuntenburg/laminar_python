@@ -11,11 +11,10 @@ def load_volume(mri_vol):
             # importing mnc files using pyminc, suggest to download if missing
         elif mri_vol.endswith('mnc'):
             try:
- #load minc format (possibly using thomas's code tomorrow)
-                img=nb.minc2.load(mri_vol)
+                import minc as pyezminc
+                img=pyezminc.mnc2nii(mri_vol)
             except ValueError:
-                print "loading .mnc files requires h5py, try installing with:"
-                print '"sudo pip install h5py"'
+                print "failed import pyezminc. try installing"
 # option to add in more file types here, eg analyze
 # if volume is already an np array
     elif isinstance(mri_vol, nb.spatialimages.SpatialImage):
@@ -51,4 +50,21 @@ def save_volume(fname, img, dtype='float32', CLOBBER=True):
 #               save minc using Thomas code
 
 
-# function to make 1D arrays from meshes geometry and data
+#loading in minc and converting to nii
+def mnc2nii(input_fn):
+	'''For a MINC input file, returns a nibabel nifti image.
+		This image can then be saved as a nifti file.'''
+	img_mnc=pyezminc.Image(fname=input_fn)
+
+	#Create empty instance of a Nibabel image
+	img_nii = nib.Nifti1Image(img_mnc.data, np.eye(4))
+
+	for space, row in zip(['xspace', 'yspace', 'zspace'],['srow_x', 'srow_y', 'srow_z'] ):
+		img_nii.header[row]=img_mnc.header[space]['direction_cosines'] + img_mnc.header[space]['start']
+	affine= [img_nii.header['srow_x'], img_nii.header['srow_y'], img_nii.header['srow_z'], [0,0,0,1]]
+
+
+	#Return data structure, data, header, affine
+	return(img_nii) #, img_mnc.data, img_nii.header, affine )
+
+
