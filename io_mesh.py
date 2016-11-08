@@ -46,14 +46,39 @@ def load_mesh_data(surf_data, gii_darray=0):
             data = nibabel.freesurfer.io.read_label(surf_data)
         # check if this works with multiple indices (if dim(data)>1)
         elif surf_data.endswith('gii'):
-            data = gifti.read(surf_data).darrays[gii_darray].data
+            data = nibabel.gifti.giftiio.read(surf_data).darrays[gii_darray].data
         elif surf_data.endswith('vtk'):
             _, _, data = read_vtk(surf_data)
+        elif surf_data.endswith('txt'):
+            data=np.loadtxt(surf_data)
         else:
             raise ValueError('Format of data file not recognized.')
     elif isinstance(surf_data, np.ndarray):
         data = np.squeeze(surf_data)
     return data
+
+## function to write mesh data
+def save_mesh_data(fname, surf_data):
+    if isinstance(fname, basestring) and isinstance(surf_data,np.ndarray):
+        if (fname.endswith('curv') or fname.endswith('thickness') or
+                fname.endswith('sulc'):
+            nibabel.freesurfer.io.write_morph_data(fname,surf_data)
+        elif fname.endswith('txt'):
+            np.savetxt(fname,surf_data)
+        elif fname.endswith('vtk'):
+            if 'data' in surf_dict.keys():
+                write_vtk(fname,surf_dict['coords'],surf_dict['faces'],surf_dict['data'])
+            else:
+                write_vtk(fname,surf_dict['coords'],surf_dict['faces'])
+        elif fname.endswith('gii'):
+            print('please write lovely write gifti command')
+        elif fname.endswith('mgh'):
+            print('please write lovely write mgh command, or retry saving as .curv file')
+    else:
+        raise ValueError('fname must be a filename and surf_data must be a numpy array')
+
+
+   
 
 
 # function to read vtk files
@@ -184,7 +209,7 @@ def save_mesh_geometry(fname,surf_dict):
         if (fname.endswith('orig') or fname.endswith('pial') or
                 fname.endswith('white') or fname.endswith('sphere') or
                 fname.endswith('inflated')):
-            print('please implement a lovely save_freesurfer commmand')
+            nibabel.freesurfer.io.write_geometry(fname,surf_dict['coords'],surf$
 #            save_freesurfer(fname,surf_dict['coords'],surf_dict['faces'])
         elif fname.endswith('gii'):
             print('please implement a lovely save_gifti command')
