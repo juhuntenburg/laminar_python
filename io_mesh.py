@@ -61,7 +61,7 @@ def load_mesh_data(surf_data, gii_darray=0):
 def save_mesh_data(fname, surf_data):
     if isinstance(fname, basestring) and isinstance(surf_data,np.ndarray):
         if (fname.endswith('curv') or fname.endswith('thickness') or
-                fname.endswith('sulc'):
+                fname.endswith('sulc')):
             nibabel.freesurfer.io.write_morph_data(fname,surf_data)
         elif fname.endswith('txt'):
             np.savetxt(fname,surf_data)
@@ -209,7 +209,7 @@ def save_mesh_geometry(fname,surf_dict):
         if (fname.endswith('orig') or fname.endswith('pial') or
                 fname.endswith('white') or fname.endswith('sphere') or
                 fname.endswith('inflated')):
-            nibabel.freesurfer.io.write_geometry(fname,surf_dict['coords'],surf$
+            nibabel.freesurfer.io.write_geometry(fname,surf_dict['coords'],surf_dict['faces'])
 #            save_freesurfer(fname,surf_dict['coords'],surf_dict['faces'])
         elif fname.endswith('gii'):
             print('please implement a lovely save_gifti command')
@@ -285,23 +285,19 @@ def write_vtk(filename, vertices, faces, data=None, comment=None):
 
     '''
     Creates ASCII coded vtk file from numpy arrays using pandas.
-
     Inputs:
     -------
     (mandatory)
     * filename: str, path to location where vtk file should be stored
     * vertices: numpy array with vertex coordinates,  shape (n_vertices, 3)
     * faces: numpy array with face specifications, shape (n_faces, 3)
-
     (optional)
     * data: numpy array with data points, shape (n_vertices, n_datapoints)
         NOTE: n_datapoints can be =1 but cannot be skipped (n_vertices,)
     * comment: str, is written into the comment section of the vtk file
-
     Usage:
     ---------------------
     write_vtk('/path/to/vtk/file.vtk', v_array, f_array)
-
     '''
 
     import pandas as pd
