@@ -186,7 +186,7 @@ def read_obj(file):
     	#Number of vertices
              n_vert=int(line.split()[6])
              XYZ=np.zeros([n_vert,3])
-         elif i<n_vert:
+         elif i<=n_vert:
              XYZ[i-1]=map(float,line.split())
          elif i==2*n_vert+3:
              n_poly=int(line)
