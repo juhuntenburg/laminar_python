@@ -8,10 +8,10 @@ def load_mesh_geometry(surf_mesh):
         if (surf_mesh.endswith('orig') or surf_mesh.endswith('pial') or
                 surf_mesh.endswith('white') or surf_mesh.endswith('sphere') or
                 surf_mesh.endswith('inflated')):
-            coords, faces = nibabel.freesurfer.io.read_geometry(surf_mesh)
+            coords, faces = nb.freesurfer.io.read_geometry(surf_mesh)
         elif surf_mesh.endswith('gii'):
-            coords, faces = gifti.read(surf_mesh).getArraysFromIntent(nibabel.nifti1.intent_codes['NIFTI_INTENT_POINTSET'])[0].data, \
-                            gifti.read(surf_mesh).getArraysFromIntent(nibabel.nifti1.intent_codes['NIFTI_INTENT_TRIANGLE'])[0].data
+            coords, faces = nb.gifti.read(surf_mesh).getArraysFromIntent(nb.nifti1.intent_codes['NIFTI_INTENT_POINTSET'])[0].data, \
+                            nb.gifti.read(surf_mesh).getArraysFromIntent(nb.nifti1.intent_codes['NIFTI_INTENT_TRIANGLE'])[0].data
         elif surf_mesh.endswith('vtk'):
             coords, faces, _ = read_vtk(surf_mesh)
         elif surf_mesh.endswith('ply'):
@@ -36,24 +36,49 @@ def load_mesh_data(surf_data, gii_darray=0):
     if isinstance(surf_data, basestring):
         if (surf_data.endswith('nii') or surf_data.endswith('nii.gz') or
                 surf_data.endswith('mgz')):
-            data = np.squeeze(nibabel.load(surf_data).get_data())
+            data = np.squeeze(nb.load(surf_data).get_data())
         elif (surf_data.endswith('curv') or surf_data.endswith('sulc') or
                 surf_data.endswith('thickness')):
-            data = nibabel.freesurfer.io.read_morph_data(surf_data)
+            data = nb.freesurfer.io.read_morph_data(surf_data)
         elif surf_data.endswith('annot'):
-            data = nibabel.freesurfer.io.read_annot(surf_data)[0]
+            data = nb.freesurfer.io.read_annot(surf_data)[0]
         elif surf_data.endswith('label'):
-            data = nibabel.freesurfer.io.read_label(surf_data)
+            data = nb.freesurfer.io.read_label(surf_data)
         # check if this works with multiple indices (if dim(data)>1)
         elif surf_data.endswith('gii'):
-            data = gifti.read(surf_data).darrays[gii_darray].data
+            data = nb.gifti.giftiio.read(surf_data).darrays[gii_darray].data
         elif surf_data.endswith('vtk'):
             _, _, data = read_vtk(surf_data)
+        elif surf_data.endswith('txt'):
+            data=np.loadtxt(surf_data)
         else:
             raise ValueError('Format of data file not recognized.')
     elif isinstance(surf_data, np.ndarray):
         data = np.squeeze(surf_data)
     return data
+
+## function to write mesh data
+def save_mesh_data(fname, surf_data):
+    if isinstance(fname, basestring) and isinstance(surf_data,np.ndarray):
+        if (fname.endswith('curv') or fname.endswith('thickness') or
+                fname.endswith('sulc')):
+            nb.freesurfer.io.write_morph_data(fname,surf_data)
+        elif fname.endswith('txt'):
+            np.savetxt(fname,surf_data)
+        elif fname.endswith('vtk'):
+            if 'data' in surf_dict.keys():
+                write_vtk(fname,surf_dict['coords'],surf_dict['faces'],surf_dict['data'])
+            else:
+                write_vtk(fname,surf_dict['coords'],surf_dict['faces'])
+        elif fname.endswith('gii'):
+            print('please write lovely write gifti command')
+        elif fname.endswith('mgh'):
+            print('please write lovely write mgh command, or retry saving as .curv file')
+    else:
+        raise ValueError('fname must be a filename and surf_data must be a numpy array')
+
+
+   
 
 
 # function to read vtk files
@@ -161,7 +186,7 @@ def read_obj(file):
     	#Number of vertices
              n_vert=int(line.split()[6])
              XYZ=np.zeros([n_vert,3])
-         elif i<n_vert:
+         elif i<=n_vert:
              XYZ[i-1]=map(float,line.split())
          elif i==2*n_vert+3:
              n_poly=int(line)
@@ -184,7 +209,7 @@ def save_mesh_geometry(fname,surf_dict):
         if (fname.endswith('orig') or fname.endswith('pial') or
                 fname.endswith('white') or fname.endswith('sphere') or
                 fname.endswith('inflated')):
-            print('please implement a lovely save_freesurfer commmand')
+            nb.freesurfer.io.write_geometry(fname,surf_dict['coords'],surf_dict['faces'])
 #            save_freesurfer(fname,surf_dict['coords'],surf_dict['faces'])
         elif fname.endswith('gii'):
             print('please implement a lovely save_gifti command')
@@ -198,7 +223,7 @@ def save_mesh_geometry(fname,surf_dict):
             write_ply(fname,surf_dict['coords'],surf_dict['faces'])
         elif fname.endswith('obj'):
             save_obj(fname,surf_dict['coords'],surf_dict['faces'])
-            print('to mesh view in brainview,\n first use average_objects on the .obj to generate surface normals,\n otherwise mesh is invisible')
+            print('to view mesh in brainview,\n first use average_objects on the .obj to generate surface normals,\n otherwise mesh is invisible')
     else:
         raise ValueError('fname must be a filename and surf_dict must be a dictionary')
 
@@ -215,15 +240,15 @@ def save_obj(surf_mesh,coords,faces):
             k+=1
             cor=' ' + ' '.join(map(str, XYZ[k]))
             s.write('%s\n' % cor)
-            s.write('\n')
+        s.write('\n')
         for a in XYZ:
             s.write(' 0 0 0\n')
         s.write('\n')
-        l=' ' + str(n_vert*2-4)+'\n'
+        l=' ' + str(len(Tri))+'\n'
         s.write(l)
         s.write(' 0 1 1 1 1\n')
         s.write('\n')
-        nt=n_vert*6-12
+        nt=len(Tri)*3
         Triangles=np.arange(3,nt+1,3)
         Rounded8=np.shape(Triangles)[0]/8
         N8=8*Rounded8
@@ -260,23 +285,19 @@ def write_vtk(filename, vertices, faces, data=None, comment=None):
 
     '''
     Creates ASCII coded vtk file from numpy arrays using pandas.
-
     Inputs:
     -------
     (mandatory)
     * filename: str, path to location where vtk file should be stored
     * vertices: numpy array with vertex coordinates,  shape (n_vertices, 3)
     * faces: numpy array with face specifications, shape (n_faces, 3)
-
     (optional)
     * data: numpy array with data points, shape (n_vertices, n_datapoints)
         NOTE: n_datapoints can be =1 but cannot be skipped (n_vertices,)
     * comment: str, is written into the comment section of the vtk file
-
     Usage:
     ---------------------
     write_vtk('/path/to/vtk/file.vtk', v_array, f_array)
-
     '''
 
     import pandas as pd
