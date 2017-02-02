@@ -36,3 +36,8 @@ References :
 
 [3] Waehnert et al. (2014). Anatomically motivated modeling of cortical
 laminae. http://doi.org/10.1016/j.neuroimage.2013.03.078
+
+
+Current release: 
+
+[![DOI](https://zenodo.org/badge/61796663.svg)](https://zenodo.org/badge/latestdoi/61796663)
