@@ -28,7 +28,7 @@ import laminar_python
 You can find an example showcasing the different functions in the laminar_python_demo.ipynb notebook.
 
 
-References :
+### References
 
 [1] Bazin et al. (2014). A computational framework for ultra-high resolution cortical segmentation at 7Tesla. http://doi.org/10.1016/j.neuroimage.2013.03.077
 
@@ -38,6 +38,6 @@ References :
 laminae. http://doi.org/10.1016/j.neuroimage.2013.03.078
 
 
-Current release: 
+### Current release
 
 [![DOI](https://zenodo.org/badge/61796663.svg)](https://zenodo.org/badge/latestdoi/61796663)
