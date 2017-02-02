@@ -1,7 +1,7 @@
 # Python tools for laminar analysis of the cortical sheet.
 
 This repository contains Python versions of several modules of [CBS Tools](https://www.nitrc.org/projects/cbs-tools/) that are useful for laminar
-analysis. [1] [2]
+analysis. [1-3]
 
 
 ### How to use laminar_python
@@ -32,5 +32,7 @@ References :
 
 [1] Bazin et al. (2014). A computational framework for ultra-high resolution cortical segmentation at 7Tesla. http://doi.org/10.1016/j.neuroimage.2013.03.077
 
-[2] Waehnert et al. (2014). Anatomically motivated modeling of cortical
+[2] https://github.com/piloubazin/cbstools-public
+
+[3] Waehnert et al. (2014). Anatomically motivated modeling of cortical
 laminae. http://doi.org/10.1016/j.neuroimage.2013.03.078
