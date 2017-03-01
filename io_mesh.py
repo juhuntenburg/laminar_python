@@ -46,7 +46,15 @@ def load_mesh_data(surf_data, gii_darray=0):
             data = nb.freesurfer.io.read_label(surf_data)
         # check if this works with multiple indices (if dim(data)>1)
         elif surf_data.endswith('gii'):
-            data = nb.gifti.giftiio.read(surf_data).darrays[gii_darray].data
+            fulldata = nb.gifti.giftiio.read(surf_data)
+            n_vectors = len(fulldata.darrays)
+            if n_vectors == 1:
+                data = fulldata.darrays[gii_darray].data
+            else:
+                print "Multiple data files found, output will be matrix"
+                data = np.zeros([len(fulldata.darrays[gii_darray].data), n_vectors])
+                for gii_darray in range(n_vectors):
+                    data[:,gii_darray] = fulldata.darrays[gii_darray].data
         elif surf_data.endswith('vtk'):
             _, _, data = read_vtk(surf_data)
         elif surf_data.endswith('txt'):
