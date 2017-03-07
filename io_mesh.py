@@ -46,7 +46,15 @@ def load_mesh_data(surf_data, gii_darray=0):
             data = nb.freesurfer.io.read_label(surf_data)
         # check if this works with multiple indices (if dim(data)>1)
         elif surf_data.endswith('gii'):
-            data = nb.gifti.giftiio.read(surf_data).darrays[gii_darray].data
+            fulldata = nb.gifti.giftiio.read(surf_data)
+            n_vectors = len(fulldata.darrays)
+            if n_vectors == 1:
+                data = fulldata.darrays[gii_darray].data
+            else:
+                print "Multiple data files found, output will be matrix"
+                data = np.zeros([len(fulldata.darrays[gii_darray].data), n_vectors])
+                for gii_darray in range(n_vectors):
+                    data[:,gii_darray] = fulldata.darrays[gii_darray].data
         elif surf_data.endswith('vtk'):
             _, _, data = read_vtk(surf_data)
         elif surf_data.endswith('txt'):
@@ -159,7 +167,7 @@ def read_ply(file):
 
     return vertex_array, face_array
 
-
+#function to read MNI obj mesh format
 def read_obj(file):
     def chunks(l,n):
       """Yield n-sized chunks from l"""
@@ -188,8 +196,6 @@ def read_obj(file):
              XYZ=np.zeros([n_vert,3])
          elif i<=n_vert:
              XYZ[i-1]=map(float,line.split())
-         elif i==2*n_vert+3:
-             n_poly=int(line)
          elif i>2*n_vert+5:
              if not line.strip():
                  k=1
@@ -212,7 +218,6 @@ def save_mesh_geometry(fname,surf_dict):
             nb.freesurfer.io.write_geometry(fname,surf_dict['coords'],surf_dict['faces'])
 #            save_freesurfer(fname,surf_dict['coords'],surf_dict['faces'])
         elif fname.endswith('gii'):
-            print('please implement a lovely save_gifti command')
             write_gifti(fname,surf_dict['coords'],surf_dict['faces'])
         elif fname.endswith('vtk'):
             if 'data' in surf_dict.keys():
@@ -223,12 +228,24 @@ def save_mesh_geometry(fname,surf_dict):
             write_ply(fname,surf_dict['coords'],surf_dict['faces'])
         elif fname.endswith('obj'):
             save_obj(fname,surf_dict['coords'],surf_dict['faces'])
-            print('to view mesh in brainview,\n first use average_objects on the .obj to generate surface normals,\n otherwise mesh is invisible')
+            print('to view mesh in brainview, run the command:\n')
+            print('average_objects ' + fname + ' ' + fname)
     else:
         raise ValueError('fname must be a filename and surf_dict must be a dictionary')
 
+def write_gifti(surf_mesh, coords, faces):
+    coord_array = nb.gifti.GiftiDataArray(data=coords,
+                                       intent=nb.nifti1.intent_codes[
+                                           'NIFTI_INTENT_POINTSET'])
+    face_array = nb.gifti.GiftiDataArray(data=faces,
+                                      intent=nb.nifti1.intent_codes[
+                                           'NIFTI_INTENT_TRIANGLE'])
+    gii = nb.gifti.GiftiImage(darrays=[coord_array, face_array])
+    nb.gifti.write(gii, surf_mesh)
+
 
 def save_obj(surf_mesh,coords,faces):
+#write out MNI - obj format
     n_vert=len(coords)
     XYZ=coords.tolist()
     Tri=faces.tolist()
