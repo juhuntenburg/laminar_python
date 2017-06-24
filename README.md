@@ -9,7 +9,7 @@ analysis. [1-3]
 1. Make sure required Python libraries are installed
 
 ```
-pip install numpy argparse nibabel
+pip install numpy nibabel cbstools
 ```
 
 2. Clone this repository to a directory that is in your PYTHONPATH, e.g
