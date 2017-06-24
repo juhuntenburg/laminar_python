@@ -39,13 +39,13 @@ def create_levelsets(tissue_prob_img, save_data=True, base_name=None):
     aff = prob_img.get_affine()
 
     try:
-        cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+        cbstools.initVM(initialheap='6000m', maxheap='6000m')
     except ValueError:
         pass
 
-    prob2level = cbstoolsjcc.SurfaceProbabilityToLevelset()
+    prob2level = cbstools.SurfaceProbabilityToLevelset()
 
-    prob2level.setProbabilityImage(cbstoolsjcc.JArray('float')((prob_data.flatten('F')).astype(float)))
+    prob2level.setProbabilityImage(cbstools.JArray('float')((prob_data.flatten('F')).astype(float)))
     prob2level.setDimensions(prob_data.shape)
     zooms = [x.item() for x in hdr.get_zooms()]
     prob2level.setResolutions(zooms[0], zooms[1], zooms[2])
@@ -119,17 +119,17 @@ def layering(gwb_levelset, cgb_levelset, n_layers=10, lut_dir='lookuptables/',
     cgb_data = load_volume(cgb_levelset).get_data()
 
     try:
-        cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+        cbstools.initVM(initialheap='6000m', maxheap='6000m')
     except ValueError:
         pass
 
-    lamination = cbstoolsjcc.LaminarVolumetricLayering()
+    lamination = cbstools.LaminarVolumetricLayering()
     lamination.setDimensions(gwb_data.shape[0], gwb_data.shape[1], gwb_data.shape[2])
     zooms = [x.item() for x in hdr.get_zooms()]
     lamination.setResolutions(zooms[0], zooms[1], zooms[2])
 
-    lamination.setInnerDistanceImage(cbstoolsjcc.JArray('float')((gwb_data.flatten('F')).astype(float)))
-    lamination.setOuterDistanceImage(cbstoolsjcc.JArray('float')((cgb_data.flatten('F')).astype(float)))
+    lamination.setInnerDistanceImage(cbstools.JArray('float')((gwb_data.flatten('F')).astype(float)))
+    lamination.setOuterDistanceImage(cbstools.JArray('float')((cgb_data.flatten('F')).astype(float)))
     lamination.setNumberOfLayers(n_layers)
     lamination.setTopologyLUTdirectory(lut_dir)
     lamination.execute()
@@ -205,13 +205,13 @@ def profile_sampling(boundary_img, intensity_img,
     intensity_data = load_volume(intensity_img).get_data()
 
     try:
-        cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+        cbstools.initVM(initialheap='6000m', maxheap='6000m')
     except ValueError:
         pass
 
-    sampler = cbstoolsjcc.LaminarProfileSampling()
-    sampler.setIntensityImage(cbstoolsjcc.JArray('float')((intensity_data.flatten('F')).astype(float)))
-    sampler.setProfileSurfaceImage(cbstoolsjcc.JArray('float')((boundary_data.flatten('F')).astype(float)))
+    sampler = cbstools.LaminarProfileSampling()
+    sampler.setIntensityImage(cbstools.JArray('float')((intensity_data.flatten('F')).astype(float)))
+    sampler.setProfileSurfaceImage(cbstools.JArray('float')((boundary_data.flatten('F')).astype(float)))
     zooms = [x.item() for x in hdr.get_zooms()]
     sampler.setResolutions(zooms[0], zooms[1], zooms[2])
     sampler.setDimensions(boundary_data.shape)
@@ -279,19 +279,19 @@ def profile_meshing(profile_file, surf_mesh, save_data=True, base_name=None):
     in_faces = load_mesh_geometry(surf_mesh)['faces']
 
     try:
-        cbstoolsjcc.initVM(initialheap='6000m', maxheap='6000m')
+        cbstools.initVM(initialheap='6000m', maxheap='6000m')
     except ValueError:
         pass
 
-    mesher = cbstoolsjcc.LaminarProfileMeshing()
+    mesher = cbstools.LaminarProfileMeshing()
 
     mesher.setDimensions(profile_data.shape)
     zooms = [x.item() for x in hdr.get_zooms()]
     mesher.setResolutions(zooms[0], zooms[1], zooms[2])
 
-    mesher.setProfileSurfaceImage(cbstoolsjcc.JArray('float')((profile_data.flatten('F')).astype(float)))
-    mesher.setInputSurfacePoints(cbstoolsjcc.JArray('float')(in_coords.flatten().astype(float)))
-    mesher.setInputSurfaceTriangles(cbstoolsjcc.JArray('int')(in_faces.flatten().astype(int)))
+    mesher.setProfileSurfaceImage(cbstools.JArray('float')((profile_data.flatten('F')).astype(float)))
+    mesher.setInputSurfacePoints(cbstools.JArray('float')(in_coords.flatten().astype(float)))
+    mesher.setInputSurfaceTriangles(cbstools.JArray('int')(in_faces.flatten().astype(int)))
 
     mesher.execute()
 
